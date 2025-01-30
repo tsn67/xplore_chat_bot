@@ -44,7 +44,183 @@ Important Information:
 - Venue: ${eventData.general.venue}
 - Contact: ${eventData.general.contact.general}
 
-Please provide accurate, helpful information about the event. If you're unsure about any details, please say so politely.`;
+Please provide accurate, helpful information about the event. If you're unsure about any details, please say so politely.
+this is some json data about our xplore chat app possible questions and answers,
+
+workshops in xplore are,
+info about xplore wokshops:
+{
+  "Technical Events": {
+    "Hackathons": [
+      {
+        "name": "Innovators Asylum 3.0",
+        "venue": "Main Auditorium",
+        "date": "Feb 9, 2024",
+        "time": "9 AM - 9 AM (24 hours)",
+        "fee": 200,
+        "prizes": "30K"
+      }
+    ],
+    "Coding Competitions": [
+      {
+        "name": "Code Vortex",
+        "venue": "Online + CCF Lab",
+        "date": "Feb 8, 2024",
+        "time": "6 PM - 9 PM",
+        "fee": 50,
+        "prizes": "6K"
+      }
+    ],
+    "Robotics": [
+      {
+        "name": "Robo War",
+        "venue": "PG Block Ground Floor",
+        "date": "Feb 9, 2024",
+        "time": "9 AM - 5 PM",
+        "fee": 250,
+        "prizes": "40K"
+      }
+    ]
+  },
+  "Management Events": {
+    "Stock Market": [
+      {
+        "name": "Stock Wizards",
+        "venue": "PG Block 105",
+        "date": "Feb 9, 2024",
+        "time": "1 PM - 5 PM",
+        "fee": 50,
+        "prizes": "5K"
+      }
+    ]
+  },
+  "Cultural Events": {
+    "Music": [
+      {
+        "name": "Harmony",
+        "venue": "Open Stage",
+        "date": "Feb 10, 2024",
+        "time": "7 PM - 10 PM",
+        "fee": "Free",
+        "prizes": "N/A"
+      }
+    ]
+  }
+}
+
+{
+  "Management Events": {
+    "Stock Market": [
+      {
+        "name": "Stock Wizards",
+        "venue": "PG Block 105",
+        "date": "Feb 9, 2024",
+        "time": "1 PM - 5 PM",
+        "fee": 50,
+        "prizes": "5K"
+      }
+    ]
+  },
+  "Cultural Events": {
+    "Music": [
+      {
+        "name": "Harmony",
+        "venue": "Open Stage",
+        "date": "Feb 10, 2024",
+        "time": "7 PM - 10 PM",
+        "fee": "Free",
+        "prizes": "N/A"
+      }
+    ],
+    "Dance": [
+      {
+        "name": "Oppana",
+        "venue": "Main Stage",
+        "date": "Feb 7, 2025",
+        "time": "10 AM - 12 PM",
+        "fee": 100,
+        "prizes": "15K"
+      },
+      {
+        "name": "Mime",
+        "venue": "Auditorium",
+        "date": "Feb 6, 2025",
+        "time": "2 PM - 4 PM",
+        "fee": 1000,
+        "prizes": "9K"
+      },
+      {
+        "name": "Duet Dance",
+        "venue": "Open Stage",
+        "date": "Feb 6, 2025",
+        "time": "5 PM - 7 PM",
+        "fee": 200,
+        "prizes": "5K"
+      }
+    ]
+  },
+  "Technical Events": {
+    "Robotics": [
+      {
+        "name": "BattleBots Arena",
+        "venue": "Robotics Lab",
+        "date": "Feb 8, 2025",
+        "time": "9 AM - 5 PM",
+        "fee": 699,
+        "prizes": "35K"
+      },
+      {
+        "name": "Robotrack Challenge",
+        "venue": "Robotics Lab",
+        "date": "Feb 7, 2025",
+        "time": "9 AM - 5 PM",
+        "fee": 499,
+        "prizes": "25K"
+      }
+    ],
+    "Workshops": [
+      {
+        "name": "LLM Fine-Tuning and Edge AI",
+        "venue": "System Lab DB02",
+        "date": "Feb 7, 2025",
+        "time": "9 AM - 5 PM",
+        "fee": 399,
+        "prizes": "N/A"
+      },
+      {
+        "name": "Drone Workshop: Explore, Learn, Fly!",
+        "venue": "Outdoor Arena",
+        "date": "Feb 8, 2025",
+        "time": "10 AM - 2:30 PM",
+        "fee": 499,
+        "prizes": "N/A"
+      },
+      {
+        "name": "Robotic Arm Workshop",
+        "venue": "Robotics Lab",
+        "date": "Feb 8, 2025",
+        "time": "9 AM - 4 PM",
+        "fee": 499,
+        "prizes": "N/A"
+      }
+    ]
+  },
+  "Special Events": {
+    "Magic and Mentalism": [
+      {
+        "name": "The Psychic Mind",
+        "venue": "Auditorium",
+        "date": "Feb 7, 2025",
+        "time": "7 PM - 9 PM",
+        "fee": "Free",
+        "prizes": "N/A"
+      }
+    ]
+  }
+}
+
+
+`;
 
 
 function generateCacheKey(message) {
@@ -80,72 +256,6 @@ async function processChatMessage(message) {
   const data = await response.json();
   return data.choices[0].message.content;
 }
-
-
-// function validateRequest(req, res, next) {
-//   if (!req.body.message || typeof req.body.message !== 'string' || req.body.message.length > 500) {
-//     return res.status(400).json({ 
-//       error: 'Invalid message format or length' 
-//     });
-//   }
-//   next();
-// }
-
-
-// app.post('/chat', validateRequest, async (req, res) => {
-//   const startTime = Date.now();
-  
-//   try {
-//     const { message } = req.body;
-//     const cacheKey = generateCacheKey(message);
-    
-    
-//     const cachedResponse = cache.get(cacheKey);
-//     if (cachedResponse) {
-//       console.log(`Cache hit for: ${cacheKey}`);
-//       return res.json({
-//         response: cachedResponse,
-//         source: 'cache'
-//       });
-//     }
-
-  
-//     const response = await queue.add(async () => {
-//       return await processChatMessage(message);
-//     });
-
-    
-//     cache.set(cacheKey, response);
-
-    
-//     const processingTime = Date.now() - startTime;
-//     res.json({
-//       response,
-//       source: 'live',
-//       processingTime: `${processingTime}ms`
-//     });
-
-//   } catch (error) {
-//     console.error('Chat error:', error);
-    
-    
-//     res.status(500).json({ 
-//       error: 'Failed to process message',
-//       details: error.message,
-//       processingTime: `${Date.now() - startTime}ms`
-//     });
-//   }
-// });
-
-
-
-// app.use((err, req, res, next) => {
-//   console.error('Unhandled error:', err);
-//   res.status(500).json({ 
-//     error: 'Internal server error',
-//     message: err.message
-//   });
-// });
 
 
 export const chat = async (req, res) => {
