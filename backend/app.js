@@ -1,5 +1,5 @@
 import express from 'express';
-import { config } from "dotenv";
+import {config} from "dotenv";
 import cors from 'cors';
 import chatRoute from './routes/chatRoute.js'
 
