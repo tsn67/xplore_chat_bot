@@ -1,7 +1,6 @@
 import express from 'express';
 import { config } from "dotenv";
-import { ChatVertexAI } from "@langchain/google-vertexai";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
+import OpenAI from 'openai';
 import NodeCache from 'node-cache';
 import PQueue from 'p-queue';
 import fs from 'fs';
@@ -25,37 +24,46 @@ const cache = new NodeCache({
   checkperiod: 60
 });
 
-// Handle Google credentials
-if (process.env.GOOGLE_BASE64_KEY) {
-  const buffer = Buffer.from(process.env.GOOGLE_BASE64_KEY, 'base64');
-  fs.writeFileSync('./cred.json', buffer);
-  console.log('Google credentials restored!');
-}
-
-// Event data
-const eventData = {
-  // ... [Your existing event data remains the same]
-};
-
-// Initialize the Gemini model with a connection pool
-const modelPool = Array(3).fill(null).map(() => new ChatVertexAI({
-  model: "gemini-1.5-flash",
-  temperature: 0.7,
+// Initialize OpenAI client pool
+const openaiPool = Array(3).fill(null).map(() => new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
   maxRetries: 2,
   timeout: 20000
 }));
 
-let currentModelIndex = 0;
+let currentClientIndex = 0;
 
-// Get next available model from pool
-function getNextModel() {
-  const model = modelPool[currentModelIndex];
-  currentModelIndex = (currentModelIndex + 1) % modelPool.length;
-  return model;
+// Get next available OpenAI client from pool
+function getNextClient() {
+  const client = openaiPool[currentClientIndex];
+  currentClientIndex = (currentClientIndex + 1) % openaiPool.length;
+  return client;
 }
 
+// Event data
+const eventData = {
+  general: {
+    name: "Xplore '24",
+    description: "Xplore 24 is the Techno-Management-Cultural Festival of Government College of Engineering, Kannur. It brings together technology, management, and culture through various events, workshops, and competitions.",
+    venue: "Government College of Engineering, Kannur (GCEK)",
+    contact: {
+      general: "xplore24.gcek@gmail.com | +91 6238 055 808",
+      technical: "support@xplore24.com | +91 80756 83613"
+    }
+  },
+  // ... rest of your event data
+};
+
 const systemPrompt = `You are the official AI assistant for Xplore '24, the Techno-Management-Cultural Festival of GCEK. Use this information to help attendees:
-// ... [Your existing system prompt remains the same]`;
+
+Event Overview:
+${eventData.general.description}
+
+Important Information:
+- Venue: ${eventData.general.venue}
+- Contact: ${eventData.general.contact.general}
+
+Please provide accurate, helpful information about the event. If you're unsure about any details, please say so politely.`;
 
 // Generate cache key from message
 function generateCacheKey(message) {
@@ -64,16 +72,19 @@ function generateCacheKey(message) {
 
 // Process chat message
 async function processChatMessage(message) {
-  const promptTemplate = ChatPromptTemplate.fromMessages([
-    ["system", systemPrompt],
-    ["human", message]
-  ]);
+  const client = getNextClient();
   
-  const prompt = await promptTemplate.invoke({});
-  const model = getNextModel();
-  const response = await model.invoke(prompt);
+  const response = await client.chat.completions.create({
+    model: "gpt-3.5-turbo",
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: message }
+    ],
+    temperature: 0.7,
+    max_tokens: 500
+  });
   
-  return response.content;
+  return response.choices[0].message.content;
 }
 
 // Middleware for basic request validation
