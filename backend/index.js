@@ -1,21 +1,19 @@
 import express from 'express';
 import { config } from "dotenv";
-import OpenAI from 'openai';
 import NodeCache from 'node-cache';
 import PQueue from 'p-queue';
-import fs from 'fs';
+import fetch from 'node-fetch';
 
 config();
 
-// Initialize Express app with increased limits
 const app = express();
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Initialize request queue
 const queue = new PQueue({ 
-  concurrency: 5, // Handle 5 concurrent requests
-  timeout: 30000  // 30 second timeout
+  concurrency: 5,
+  timeout: 30000
 });
 
 // Initialize cache with 5 minute TTL
@@ -24,21 +22,9 @@ const cache = new NodeCache({
   checkperiod: 60
 });
 
-// Initialize OpenAI client pool
-const openaiPool = Array(3).fill(null).map(() => new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  maxRetries: 2,
-  timeout: 20000
-}));
-
-let currentClientIndex = 0;
-
-// Get next available OpenAI client from pool
-function getNextClient() {
-  const client = openaiPool[currentClientIndex];
-  currentClientIndex = (currentClientIndex + 1) % openaiPool.length;
-  return client;
-}
+// OpenRouter API configuration
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 // Event data
 const eventData = {
@@ -70,21 +56,34 @@ function generateCacheKey(message) {
   return `chat_${Buffer.from(message).toString('base64')}`;
 }
 
-// Process chat message
+// Process chat message using OpenRouter API
 async function processChatMessage(message) {
-  const client = getNextClient();
-  
-  const response = await client.chat.completions.create({
-    model: "gpt-3.5-turbo",
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: message }
-    ],
-    temperature: 0.7,
-    max_tokens: 500
+  const response = await fetch(OPENROUTER_URL, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://your-site.com', // Replace with your site
+      'X-Title': 'Xplore 24 Chat Assistant' // Your app name
+    },
+    body: JSON.stringify({
+      model: 'openai/gpt-3.5-turbo', // OpenRouter model identifier for GPT-3.5
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: message }
+      ],
+      temperature: 0.7,
+      max_tokens: 500
+    })
   });
-  
-  return response.choices[0].message.content;
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'OpenRouter API request failed');
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
 }
 
 // Middleware for basic request validation
