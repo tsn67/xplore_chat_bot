@@ -769,7 +769,7 @@ export const chat = async (req, res) => {
   const startTime = Date.now();
 
   try {
-    const { message } = req.body;
+    const { message, context = [] } = req.body;
 
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
@@ -787,9 +787,14 @@ export const chat = async (req, res) => {
       });
     }
 
-    // Create message list
+    var tempArr = [];
+    context.map((item) => {tempArr.push({ role: item.type, content: item.content })});
+
+    console.log(context);
+    // Convert context to OpenAI format and include system prompt
     const messages = [
       { role: "system", content: systemPrompt },
+      ...tempArr,
       { role: "user", content: message }
     ];
 
@@ -799,6 +804,7 @@ export const chat = async (req, res) => {
       messages: messages
     });
 
+    console.log(completion);
     const response = completion.choices[0].message.content;
 
     // Cache response
